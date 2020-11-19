@@ -13,11 +13,42 @@ const tileWidth = 80;
 const tileHeight = 80;
 
 export default function Home() {
-  const canvasRef = useRef(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  const getMousePos = (canvas: HTMLCanvasElement, e: MouseEvent) => {
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    };
+  };
+
+
+  const renderTileHover(ctx, x, y, width, height) {
+    ctx.beginPath();
+    ctx.setLineDash([]);
+    ctx.strokeStyle = 'rgba(192, 57, 43, 0.8)';
+    ctx.fillStyle = 'rgba(192, 57, 43, 0.4)';
+    ctx.lineWidth = 2;
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + width / 2, y - height / 2);
+    ctx.lineTo(x + width, y);
+    ctx.lineTo(x + width / 2, y + height / 2);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    ctx.fill();
+  }
+
+  const run = function (e, ctx) {
+    // update(e);
+    renderTileHover();
+    window.requestAnimationFrame(run);
+  };
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
+    let mousePosition;
 
     for (const i in map) {
       for (const j in map[i]) {
@@ -41,6 +72,25 @@ export default function Home() {
         // ctx.fill();
       }
     }
+
+    canvas.addEventListener(
+      'mousemove',
+      (e) => {
+        mousePosition = getMousePos(canvas, e);
+      },
+      false
+    );
+    window.addEventListener(
+      'touchmove',
+      (e) => {
+        mousePosition = getMousePos(canvas, e);
+        e.preventDefault();
+      },
+      false
+    );
+    
+    run(e, ctx);
+    
   });
 
   return (
