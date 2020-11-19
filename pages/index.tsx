@@ -1,5 +1,5 @@
+import React, { useEffect, useRef, useState } from 'react';
 import Head from 'next/head';
-import { useEffect, useRef } from 'react';
 
 const map = [
   [0, 2, 1, 3, 5],
@@ -14,84 +14,85 @@ const tileHeight = 80;
 
 export default function Home() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [key, setKey] = useState(0);
+  let animation;
+  let mousePosition = {
+    x: -1,
+    y: -1,
+  };
 
   const getMousePos = (canvas: HTMLCanvasElement, e: MouseEvent) => {
     const rect = canvas.getBoundingClientRect();
     return {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
+      x: Math.floor((e.clientX - rect.left) / tileWidth),
+      y: Math.floor((e.clientY - rect.top) / tileHeight),
     };
   };
 
-
-  const renderTileHover(ctx, x, y, width, height) {
+  const hoverTile = (ctx, x, y) => {
     ctx.beginPath();
     ctx.setLineDash([]);
-    ctx.strokeStyle = 'rgba(192, 57, 43, 0.8)';
+
+    ctx.strokeStyle = 'rgba(45, 146, 230)';
+    ctx.fillStyle = 'rgb(229, 255, 0)';
+    ctx.lineWidth = 2;
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + tileWidth, y);
+    ctx.lineTo(x + tileWidth, y + tileHeight);
+    ctx.lineTo(x, y + tileHeight);
+    ctx.lineTo(x, y);
+
+    ctx.stroke();
+    ctx.fill();
+  };
+
+  const backgroundTile = (ctx, x, y) => {
+    ctx.beginPath();
+    ctx.setLineDash([]);
+    ctx.strokeStyle = '#00ffff';
     ctx.fillStyle = 'rgba(192, 57, 43, 0.4)';
     ctx.lineWidth = 2;
     ctx.moveTo(x, y);
-    ctx.lineTo(x + width / 2, y - height / 2);
-    ctx.lineTo(x + width, y);
-    ctx.lineTo(x + width / 2, y + height / 2);
+    ctx.lineTo(x + tileWidth, y);
+    ctx.lineTo(x + tileWidth, y + tileHeight);
+    ctx.lineTo(x, y + tileHeight);
     ctx.lineTo(x, y);
     ctx.stroke();
     ctx.fill();
-  }
+  };
 
-  const run = function (e, ctx) {
-    // update(e);
-    renderTileHover();
-    window.requestAnimationFrame(run);
+  const renderMap = (ctx: CanvasRenderingContext2D) => {
+    for (let i = 0; i < map.length; i += 1) {
+      for (let j = 0; j < map[i].length; j += 1) {
+        const x = i * tileWidth;
+        const y = j * tileHeight;
+        9;
+        if (mousePosition.x === i && mousePosition.y === j) {
+          hoverTile(ctx, x, y);
+        }
+
+        backgroundTile(ctx, x, y);
+      }
+    }
+
+    animation = requestAnimationFrame(() => renderMap(ctx));
   };
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    let mousePosition;
-
-    for (const i in map) {
-      for (const j in map[i]) {
-        ctx.beginPath();
-        ctx.lineWidth = '4';
-        ctx.strokeStyle = '#00ffff';
-        ctx.rect(
-          parseInt(j, 10) * tileWidth,
-          parseInt(i, 10) * tileHeight,
-          tileWidth,
-          tileWidth
-        );
-        ctx.stroke();
-        // ctx.fillStyle = colors[map[i][j]];
-        // ctx.rect(
-        //   parseInt(j, 10) * tileWidth,
-        //   parseInt(i, 10) * tileHeight,
-        //   tileWidth,
-        //   tileWidth
-        // );
-        // ctx.fill();
-      }
-    }
+    const ctx = canvas.getContext('2d', { alpha: false });
+    renderMap(ctx);
 
     canvas.addEventListener(
       'mousemove',
       (e) => {
         mousePosition = getMousePos(canvas, e);
       },
-      false
+      false,
     );
-    window.addEventListener(
-      'touchmove',
-      (e) => {
-        mousePosition = getMousePos(canvas, e);
-        e.preventDefault();
-      },
-      false
-    );
-    
-    run(e, ctx);
-    
-  });
+
+    return () => cancelAnimationFrame(animation);
+  }, []);
 
   return (
     <>
@@ -104,10 +105,12 @@ export default function Home() {
           height={map.length * tileHeight}
           width={map[0].length * tileWidth}
           ref={canvasRef}
+          key={key}
         />
       </main>
 
-      <style jsx>{`
+      <style jsx>
+        {`
         main {
           display: flex;
           align-items: center;
@@ -117,7 +120,9 @@ export default function Home() {
         canvas {
           transform: rotateX(55deg) rotateZ(45deg);
         }
-      `}</style>
+      `}
+
+      </style>
     </>
   );
 }
