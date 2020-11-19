@@ -220,7 +220,7 @@ function mouseUp(evt) {
 }
 
 function getMousePos(canvas, evt) {
-  var rect = canvas.getBoundingClientRect();
+  const rect = canvas.getBoundingClientRect();
   return {
     x: evt.clientX - rect.left,
     y: evt.clientY - rect.top,
@@ -240,8 +240,8 @@ class Starfield {
     this.velocityX = velocityX;
     this.velocityY = velocityY;
     this.totalElapsedMilliseconds = 0;
-    let starCount = Math.random() * 100 + 3;
-    for (let i = 0; i < starCount; ++i) {
+    const starCount = Math.random() * 100 + 3;
+    for (let i = 0; i < starCount; i += 1) {
       let radius = scale * (Math.random() * 3) + 1;
       let x = Math.random() * canvas.width + 20;
       let y = Math.random() * canvas.height + 20;
